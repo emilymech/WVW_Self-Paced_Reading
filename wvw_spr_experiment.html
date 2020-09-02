@@ -1,0 +1,834 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Reading Experiment</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="jspsych-6.1.0/jspsych.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response3.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-resize.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-image-button-response.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-instructions.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-external-html.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-select.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-call-function.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-moving-window.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="PapaParse-5.0.2/papaparse.min.js"></script>
+    <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+
+  </head>
+  <body>
+  </body>
+
+  <script type="text/javascript" language = "javascript">
+
+  // initialize timeline
+  var timeline = [];
+
+  // Define global variables
+  var left = 0;
+  var left_trial = 0;
+  var progress_location = "beginning";
+  var mturk_code = String(jsPsych.randomization.randomID(10));
+  var time_left = 0;
+  var trial_iterator = 0;
+  var prac_iterator = 0;
+  var comp_iterator = 0;
+  var fixation_time = 500;
+  var max_display_time = 10000;
+  var iti = 1000;
+  var participant = jsPsych.randomization.randomID(15);
+  var no_response = 0;
+  var key_codes = [32];
+  var os = [
+    { name: 'Windows Phone', value: 'Windows Phone', version: 'OS' },
+    { name: 'Windows', value: 'Win', version: 'NT' },
+    { name: 'iPhone', value: 'iPhone', version: 'OS' },
+    { name: 'iPad', value: 'iPad', version: 'OS' },
+    { name: 'Kindle', value: 'Silk', version: 'Silk' },
+    { name: 'Android', value: 'Android', version: 'Android' },
+    { name: 'PlayBook', value: 'PlayBook', version: 'OS' },
+    { name: 'BlackBerry', value: 'BlackBerry', version: '/' },
+    { name: 'Macintosh', value: 'Mac', version: 'OS X' },
+    { name: 'Linux', value: 'Linux', version: 'rv' },
+    { name: 'Palm', value: 'Palm', version: 'PalmOS' }
+  ];
+  var browser = [
+    { name: 'Chrome', value: 'Chrome', version: 'Chrome' },
+    { name: 'Firefox', value: 'Firefox', version: 'Firefox' },
+    { name: 'Safari', value: 'Safari', version: 'Version' },
+    { name: 'Internet Explorer', value: 'MSIE', version: 'MSIE' },
+    { name: 'Opera', value: 'Opera', version: 'Opera' },
+    { name: 'BlackBerry', value: 'CLDC', version: 'CLDC' },
+    { name: 'Mozilla', value: 'Mozilla', version: 'Mozilla' }
+  ];
+  var header = [
+    navigator.platform,
+    navigator.userAgent,
+    navigator.appVersion,
+    navigator.vendor
+  ];
+
+  // regex for making browser/os prettier
+  function matchItem(string, data) {
+    var i = 0,
+        j = 0,
+        html = '',
+        regex,
+        regexv,
+        match,
+        matches,
+        version;
+    
+    for (i = 0; i < data.length; i += 1) {
+        regex = new RegExp(data[i].value, 'i');
+        match = regex.test(string);
+        if (match) {
+            regexv = new RegExp(data[i].version + '[- /:;]([\d._]+)', 'i');
+            matches = string.match(regexv);
+            version = '';
+            if (matches) { if (matches[1]) { matches = matches[1]; } }
+            if (matches) {
+                matches = matches.split(/[._]+/);
+                for (j = 0; j < matches.length; j += 1) {
+                    if (j === 0) {
+                        version += matches[j] + '.';
+                    } else {
+                        version += matches[j];
+                    }
+                }
+            } else {
+                version = '0';
+            }
+            return {
+                name: data[i].name,
+                version: parseFloat(version)
+            };
+        }
+    }
+    return { name: 'unknown', version: 0 };
+  }
+
+  var agent = header.join(' ');
+  var os = this.matchItem(agent, os);
+  var browser = this.matchItem(agent, browser);
+
+  var os = Object.values(os)
+  var browser = Object.values(browser)
+
+  console.log(agent, os, browser)
+
+
+  // Select the experiment list 
+  var item_Lists = ["wvw_spr_list_1", "wvw_spr_list_2", "wvw_spr_list_3", "wvw_spr_list_4", "wvw_spr_list_5", "wvw_spr_list_6", "wvw_spr_list_7", "wvw_spr_list_8", "wvw_spr_list_1b", "wvw_spr_list_2b", "wvw_spr_list_3b", "wvw_spr_list_4b", "wvw_spr_list_5b", "wvw_spr_list_6b", "wvw_spr_list_7b", "wvw_spr_list_8b"];
+  var list = jsPsych.randomization.sampleWithoutReplacement(item_Lists, 1);
+
+  // Initialize variables for stimuli and trials
+  var stimuli = [];
+  var prac_trials = [];
+  var all_trials = [];
+
+  //load the selected list
+  function load_list() {
+    Papa.parse("Stimuli/" +list+ ".csv", {
+      download: true,
+      header: true,
+      complete: function(results) {
+        console.log(results["data"].length);
+        stimuli = results["data"];
+        load_prac_trials();
+        load_trials();
+      }
+    });
+  }
+
+  // Load the trials and trial information
+  function load_prac_trials() {
+    //get all the trials of that category
+    for (i = 0; i < 4; i++) {
+        prac_trial_info = [stimuli[i]["index"], stimuli[i]["item_num"], stimuli[i]["variable"], stimuli[i]["list"], stimuli[i]["type"], stimuli[i]["feature"], stimuli[i]["concept"], stimuli[i]["spr_sentences"], stimuli[i]["trial_order"], stimuli[i]["ask_question"], stimuli[i]["question_type"], stimuli[i]["comprehension_questions"], stimuli[i]["option1"], stimuli[i]["option2"], stimuli[i]["option3"],stimuli[i]["option4"], stimuli[i]["correct_answer"]];
+        prac_trials.push(prac_trial_info); // trials are already pseudo-randomized so no need to do it here
+    } 
+  }
+
+  // Load the trials and trial information
+  function load_trials() {
+    //get all the trials of that category
+    for (i = 4; i < stimuli.length; i++) {
+        trial_info = [stimuli[i]["index"], stimuli[i]["item_num"], stimuli[i]["variable"], stimuli[i]["list"], stimuli[i]["type"], stimuli[i]["feature"], stimuli[i]["concept"], stimuli[i]["spr_sentences"], stimuli[i]["trial_order"], stimuli[i]["ask_question"], stimuli[i]["question_type"], stimuli[i]["comprehension_questions"], stimuli[i]["option1"], stimuli[i]["option2"], stimuli[i]["option3"],stimuli[i]["option4"], stimuli[i]["correct_answer"]];
+        all_trials.push(trial_info); // trials are already pseudo-randomized so no need to do it here
+    } 
+  }
+
+  // Plug-in that will call the functions needed to get the stimuli ready
+  var get_stimuli = {
+    type: 'call-function',
+    func: load_list
+  }
+
+  timeline.push(get_stimuli)
+
+  // Define the datafilenames
+  var parent_experiment = list[0].split("_")[0];
+  var current_experiment = list[0].split("_")[1];
+  var list_num = list[0].split("_")[3];
+  var timestamp = Math.floor(Date.now() / 1000);
+  var datafilename = String(parent_experiment)+"_"+String(current_experiment)+"_"+String(list_num)+"_"+String(participant); //need extension?
+  var interaction_data_file_name = String(parent_experiment)+"_"+String(current_experiment)+"_"+String(list_num)+"_"+String(participant)+"_interactions"
+  console.log(datafilename)
+  var clean_file_name = String(parent_experiment)+"_"+String(current_experiment)+"_"+String(list_num)+"_"+String(participant)+"_clean"
+  var trial_load_time = [];
+  var trial_start_time = [];
+  var trial_end_time = [];
+  var refresh_rate = [];
+
+  // Create data matrix to be saved later to csv file
+  var data_all = {
+    timestamp: [],
+    participant: [],
+    mturk_code: [],
+    agent: [],
+    browser: [],
+    os: [],
+    refresh_rate: [],
+    trial_load_time: [],
+    trial_start_time: [],
+    trial_end_time: [],
+    age: [],
+    hs: [],
+    college: [],
+    grad: [],
+    gender: [],
+    ethnicity: [],
+    race: [],
+    hand: [],
+    read: [],
+    fam_hand: [],
+    activity_hand:[], 
+    change_hand: [],
+    index: [],
+    item_num: [],
+    variable: [],
+    list: [],
+    type: [],
+    feature: [],
+    concept: [],
+    trial_order: [],
+    ask_question: [],
+    question_type: [],
+    comprehension_questions: [],
+    option1: [],
+    option2: [],
+    option3: [],
+    option4: [],
+    correct_answer: [],
+    spr_sentence: [],
+    response_time: []
+  };  
+
+  // get refresh rate
+  function get_refresh_rate() {
+    if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame =
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame;
+    }
+
+    var t = new Array(1000);
+    var times = new Array(1000);
+    var frame_number = 0;
+    var t0;
+    function avg(){
+        var sum = times.reduce(function(a, b) { return a + b });
+        var avg = sum / (times.length);
+        console.log(avg);
+        data_all.refresh_rate.push(avg)
+    }
+    function animate(now) {
+        if(frame_number>0) {
+            t0 = t[frame_number];
+            times[frame_number+1] = now-t0;
+        }
+        t[frame_number+1] = now;
+
+        frame_number++;
+        if(frame_number+1 ==times.length) { 
+            avg();
+            return;
+        } else{
+            window.requestAnimationFrame(animate);
+        }
+    };
+    window.requestAnimationFrame(animate);
+  }
+
+
+
+  // add functions that yell at participants if they leave the experiment screen
+  //left screen message with button to continue
+  var leftscreen = {
+    type: "html-button-response",
+    stimulus: '<p style="color: red; font-size: 48px; font-weight: bold;">' + 'Task is paused. <p>PLEASE RESUME THE TASK.</p>' + 
+    '</p>',
+    choices: ['Continue Task']
+  }
+
+  var fullscreen = {
+    type: 'fullscreen',
+    fullscreen_mode: true
+  }
+
+  var backonscreen = {
+    type: "html-keyboard-response",
+    stimulus: "Task was paused because you left the screen and will now resume.",
+    trial_duration: 3000,
+    response_ends_trial: false
+  }
+
+  var ifleft = {
+    timeline: [leftscreen, fullscreen, backonscreen],
+    conditional_function: function(){
+      if(left == 1 & progress_location == "task"){
+      left = 0;
+      progress_location = "backonscreen";
+      if (left_trial == 1) {
+        left_trial = 0;
+        alert("Leaving will pause the task and it will take longer for you to finish.");
+      }
+      return true;
+    }
+     else {
+      return false;
+      }
+    }
+  }
+
+
+  // welcome
+  var welcome = {
+    type: "html-keyboard-response",
+    stimulus: "<p>Hello and welcome to our experiment!</p>" +
+    "In this experiment, you will read sentences that are presented to you one word at a time. You will also fill out some questionnaires about your background. We expect that the whole experiment will take about 20-30 minutes. </p>" +
+    "Before you begin the experiment, let's do a few things to ensure that the experiment is customized for your screen size. Please press any button to continue.",
+    show_clickable_nav : true
+  }
+
+  timeline.push(welcome)
+
+
+  // add a resizing function
+  var inputs = {
+    type: 'resize',
+    item_width: 3 + 3/8,
+    item_height: 2 +1/8,
+    prompt: "<p>Click and drag the lower right corner of the box until the box is the same size as a credit card held up to the screen.</p>",
+    pixels_per_unit: 125
+  };
+
+  timeline.push(inputs)
+
+  // Explain that we will be asking for consent and a little about themselves
+  var consent_instructions = {
+    type: "instructions",
+    pages: [
+    "<p>If this text is too small for you or is too large and going off of the screen, please refresh your browser and make the blue box bigger or smaller than you did before. However, once you have a size that works for you, please do not refresh your screen.</p>"+
+    "<p>Before you begin the experiment, we need to ask for your consent to participate in the study. You will see a consent form trialP_appear, and if you agree to participate, check the box that you agree. If you choose not to participate, you can close the experiment in your browser.</p>"+
+    "<p><After you consent to participate, you will proceed to the main experiment./p>"
+    ],
+    show_clickable_nav : true
+  }
+
+    //function to check if a subject has given consent to participate.
+  function check_consent(elem) {
+      if ($('#consent_checkbox').is(':checked')) {
+        return true;
+      }
+      else {
+        alert("If you wish to participate, you must check the box next to the statement 'I agree to participate in this study.'");
+        return false;
+      }
+      return false;
+  };
+
+
+  // declare the consent block.
+  var consent_form = {
+    type:'external-html',
+    url: "http://cogandbrain.web.illinois.edu/Emily/wvw_spr/cablab_online_consent_wvw.html",
+      cont_btn: "start",
+      check_fn: check_consent
+  };
+
+
+  timeline.push(consent_instructions)
+  timeline.push(consent_form)
+  // make the timeline fullscreen
+  timeline.push(fullscreen)
+
+
+  // present instructions
+  var instructions = {
+    type: "instructions",
+    pages: [
+    "<p>In this experiment, you will see a series of sentences that will be presented one word at a time. Your task will be to read and understand each sentence</p>" +
+    "<p>Before the first word of the sentence appears, you will see a '+' symbol telling you to pay attention, because the sentence is about to begin. When you are ready to start reading the sentence, press the spacebar. After pressing the spacebar, you will see a word appear in the middle of the screen. When you have read and understood the word, press the spacebar to see the next word. Continue pressing the spacebar to read all of the words.</p>" +
+
+    "<p>You will always see two sentences together. Please read through both sentences.</p>"+
+    "<p>When you have finished reading both sentences, you might see a question that asks you about the sentences you just read. If a question appears, answer it to the best of your ability based on what you read in the sentence prior. In some sentences, there will be instructions to select a specific answer option. Be sure to answer the following question with the answer given in the sentence prior. After the question, there will be a brief pause and then you will see the next '+' appear in the middle of the screen.</p>"+
+    "<p></p>" +
+    "<p>If you prefer to only use the keyboard, you can press the right arrow key instead of the next button. To answer the questions, you can first press the tab key, and then select your answer with the arrow keys. When you are ready to submit your answer, you can press enter/return. <b>This keyboard shortcut will not work if you are using Safari!</b></p>" +
+    "<p></p>" +
+    "<p>Let's start with a few practice trials for you to get the hang of it! When you are ready, press the next button to start the practice.</p>"
+
+    ],
+    show_clickable_nav : true,
+    on_start: function(){
+      progress_location = "instructions";
+    }
+  }; 
+
+  timeline.push(instructions)
+
+  // calling this function here to try and get more stable average
+  get_refresh_rate()
+
+  // Present fixation cross
+  var fixation = {
+    type: 'html-keyboard-response',
+    stimulus: '<div style="font-size:60px;">+</div>',
+    choices: key_codes,
+    on_start: function(){
+      progress_location = "task";
+    }
+  }
+
+
+  var comprehension = {    
+    type: "survey-multi-choice",
+    questions: function() {
+       var q_array = [
+            {prompt: prac_trials[comp_iterator][11], options: jsPsych.randomization.repeat([prac_trials[comp_iterator][12], prac_trials[comp_iterator][13], prac_trials[comp_iterator][14], prac_trials[comp_iterator][15]],1), required:true, name: "comprehension_practice"}
+                ];
+        return q_array;
+      },
+    on_finish: function(data){
+      correct_prac_answer = '{"comprehension":"'+ String(prac_trials[comp_iterator][16]) + '"}'
+      if(data.responses == correct_prac_answer){
+        data.correct = true;
+      } else{
+        data.correct = false;
+      }
+    }
+  }
+
+  var comprehension_timeline = {
+    timeline: [comprehension],
+    conditional_function: function(){
+      comp_iterator = prac_iterator - 1;
+      ask_question = prac_trials[comp_iterator][9];
+      if (ask_question == "no"){
+        return false;
+      } else{
+        return true;
+      }
+    }
+  }
+
+   // Present practice trials
+  var practice = {
+    type: "moving-window",
+    words: "spr_sentences",
+    key: key_codes,
+    stimulus_duration: 5000,
+    post_trial_gap: iti,
+    on_start: function(practice) {
+      practice.words = prac_trials[prac_iterator][7];
+      progress_location = "task";
+    },
+    on_finish: function(data) {
+      prac_iterator = prac_iterator + 1
+    }
+  }
+
+
+  //looping through all the experiment trials
+  var practice_loop = {
+    timeline: [ifleft, fixation, ifleft, practice, ifleft, comprehension_timeline],
+    loop_function: function(data){
+      if(prac_iterator < prac_trials.length){
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  timeline.push(practice_loop)
+
+  // Post practice instructions
+  var post_practice_instructions = {
+    type: "instructions",
+    pages: [
+    "<p>Great job! You will be doing the same thing for the experiment trials.</p>"+
+    "<p>You will read 158 sentences in this experiment (two at a time). After every trial, you may take a break if you wish, but there will be no automatic breaks in the experiment.</p>"+
+    "<p></p>"+
+    "<p>While you are doing the experiment, please do not leave the screen or exit fullscreen mode while you are reading the sentences or answering the questions. If you need to take a break, please wait until you see the message 'When you are ready to continue, press the spacebar.'</p>"+
+    "<p>Press the 'next' button to start the experiment.</p>" +
+    "<p>Reminder: You can use the right arrow key insted of clicking next, and you can respond to the question prompts by first hitting tab, selecting your choice with the arrow keys, and then hitting enter/return. <b>This keyboard shortcut will not work if you are using Safari!</b>"
+    ],
+    show_clickable_nav : true,
+    on_start: function(){
+      progress_location = "post practice instructions";
+    }
+  }; 
+
+  timeline.push(post_practice_instructions)
+
+  // Set up break prompt
+  var break_trial = {
+    type: 'html-keyboard-response',
+    stimulus: 'When you are ready to continue, press the spacebar.',
+    choices: [32],
+  }
+
+  var comprehension_experiment = {    
+    type: "survey-multi-choice",
+    questions: function() {
+       var q_array = [
+            {prompt: all_trials[comp_iterator][11], options: jsPsych.randomization.repeat([all_trials[comp_iterator][12], all_trials[comp_iterator][13], all_trials[comp_iterator][14], all_trials[comp_iterator][15]], 1), required:true, name: "comprehension_experiment"}
+                ];
+        return q_array;
+      },
+    on_finish: function(data){
+      correct_q_answer = '{"comprehension_experiment":"'+ String(all_trials[comp_iterator][16]) + '"}'
+      if(data.responses == correct_q_answer){
+        data.correct = true;
+      } else{
+        data.correct = false;
+      }
+    }
+  }
+
+  var comprehension_timeline_exp = {
+    timeline: [comprehension_experiment],
+    conditional_function: function(){
+      comp_iterator = trial_iterator - 1;
+      ask_question = all_trials[comp_iterator][9];
+      if (ask_question == "no"){
+        return false;
+      } else{
+        return true;
+      }
+    }
+  }
+
+  // Present experiment sentences
+  var trial = {
+    type: "moving-window",
+    words: "spr_sentences",
+    key: key_codes,
+    stimulus_duration: 5000,
+    post_trial_gap: iti,
+    on_load: function(){
+      data_all.trial_load_time.push(performance.now())
+    },
+    on_start: function(trial) {
+      progress_location = "task";
+      data_all.trial_start_time.push(performance.now());
+      trial.words = all_trials[trial_iterator][7];
+      resp = 0; 
+    },
+    on_finish: function(data) {
+      data_all.trial_end_time.push(performance.now());
+      //save trial data
+      data_all.timestamp.push(timestamp);
+      data_all.participant.push(participant);
+      data_all.mturk_code.push(mturk_code);
+      data_all.agent.push(agent);
+      data_all.browser.push(browser);
+      data_all.os.push(os);
+      data_all.refresh_rate.push('');
+      data_all.trial_load_time.push(trial_load_time);
+      data_all.trial_start_time.push(trial_start_time);
+      data_all.trial_end_time.push(trial_end_time);
+      data_all.age.push('');
+      data_all.hs.push('');
+      data_all.college.push('');
+      data_all.grad.push('');
+      data_all.read.push('');
+      data_all.fam_hand.push('');
+      data_all.gender.push('');
+      data_all.ethnicity.push('');
+      data_all.race.push('');
+      data_all.hand.push('');
+      data_all.activity_hand.push('');
+      data_all.change_hand.push('');
+      data_all.index.push(all_trials[trial_iterator][0]);
+      data_all.item_num.push(all_trials[trial_iterator][1]);
+      data_all.variable.push(all_trials[trial_iterator][2]);
+      data_all.list.push(all_trials[trial_iterator][3]);
+      data_all.type.push(all_trials[trial_iterator][4]);
+      data_all.feature.push(all_trials[trial_iterator][5]);
+      data_all.concept.push(all_trials[trial_iterator][6]);
+      data_all.spr_sentence.push(all_trials[trial_iterator][7]);
+      data_all.trial_order.push(all_trials[trial_iterator][8]);
+      data_all.ask_question.push(all_trials[trial_iterator][9]);
+      data_all.question_type.push(all_trials[trial_iterator][10]);
+      data_all.comprehension_questions.push(all_trials[comp_iterator][11]);
+      data_all.option1.push(all_trials[comp_iterator][12]);
+      data_all.option2.push(all_trials[comp_iterator][13]);
+      data_all.option3.push(all_trials[comp_iterator][14]);
+      data_all.option4.push(all_trials[comp_iterator][15]);
+      data_all.correct_answer.push(all_trials[comp_iterator][16]);
+      data_all.response_time.push(data.rt);
+      trial_iterator = trial_iterator + 1;
+
+      if(key_codes.includes(data.key_press)) {
+        resp = 1;
+      }
+    },
+  }
+
+
+  //looping through all the experiment trials
+  var experiment_loop = {
+    timeline: [ifleft, fixation, ifleft, trial, ifleft, comprehension_timeline_exp, break_trial],
+    loop_function: function(data){
+      if(trial_iterator < all_trials.length){
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  timeline.push(experiment_loop)
+
+  var demo_instructions = {
+    type: "instructions", 
+    pages: [
+    "<p>Great job! You have finished reading all of the sentences. Next, we will ask a few brief questions about your background and explain the goal of the research.</p>"],
+    show_clickable_nav : true,
+    on_start: function(){
+      progress_location = "demo_instructions";
+    }
+  }
+
+  timeline.push(demo_instructions)
+
+  // initialize demo variables
+  var age = " ";
+  var hs = " ";
+  var college = " ";
+  var grad = " ";
+  var read = " ";
+  var gender = " ";
+  var ethnicity = " ";
+  var race = " ";
+  var fam_hand = " ";
+  var hand = " ";
+  var activity_hand = " ";
+  var change_hand = " ";
+
+
+  //age, education, reading, family handedness
+  var demo1 = {
+      type: 'survey-text',
+      preamble: "A goal of our research is to test participants from a diverse set of backgrounds in order to be able to generalize the results as much as possible. Please answer the following questions about your background to help us better understand who is participating in the study.",
+      questions: [{prompt: "How old are you?", required:true}, 
+        {prompt: "How many years of high school have you completed?"}, 
+        {prompt: "How many years of college have you completed?"}, 
+        {prompt: "How many years of graduate school have you completed?"},
+        {prompt: "How many hours do you spend reading newspaper or magazine articles, books, and/or online texts in a typical week?", required:true},
+        {prompt:"Do you have any immediate family members who are left-handed? If you have children, siblings, parents, or grandparents who are left-handed, please list them in the box.", required:true}],
+      on_finish: function(data) {
+        progress_location = "task";
+        var d = JSON.parse(data.responses);
+        age = d.Q0;
+        hs = d.Q1;
+        college = d.Q2;
+        grad = d.Q3;
+        read = d.Q4
+        fam_hand = d.Q5
+
+        data_all.age.push(age);
+        data_all.hs.push(hs);
+        data_all.college.push(college);
+        data_all.grad.push(grad);
+        data_all.read.push(read);
+        data_all.fam_hand.push(fam_hand)
+      }
+  };
+
+  //gender ethnicity hand and race
+  var demo2 = {
+    type: 'survey-multi-choice',
+      questions: [{prompt: "Sex", options: ["Male", "Female", "Other"], required:true, horizontal: true}, 
+        {prompt: "Ethnicity: Do you consider yourself to be Hispanic or Latino?", options: ["Yes", "No"], required:false, horizontal:true}, 
+        {prompt: "Race: What race do you consider yourself to be?", options: ["American Indian or Alaska Native", "Asian", "Black or African-American", "White", "Other"], required:false, horizontal:true}],
+    on_finish: function(data) {
+      progress_location = "task";
+      var d = JSON.parse(data.responses);
+        gender = d.Q0;
+        ethnicity = d.Q1;
+        race = d.Q2;
+
+        data_all.gender.push(gender);
+        data_all.ethnicity.push(ethnicity);
+        data_all.race.push(race);
+      }
+  };
+
+  // handedness
+  var demo3 = {
+    type: "survey-multi-select",
+    questions: [
+      {prompt: "Do you consider yourself:", options: ["right-handed?", "left-handed?", "ambidextrous?"], horizontal:true, required:true},
+      {prompt: "Please check all activities in which you would prefer to use your right hand. If you have no preference or prefer your left hand, leave the activity unchecked. If you do not do the activity, please indicate which hand you would use if you had to do the activity.", options: ["Writing", "Drawing", "Throwing", "Scissors", "Comb", "Toothbrush", "Knife (without spoon)", "Spoon", "Hammer", "Screwdriver", "Tennis Racket", "Golf Club (lower hand)", "Push Broom (upper hand)", "Rake (upper hand)", "Striking Match (match)", "Opening Box (lid)", "Dealing Cards (card being dealt)", "Threading needle (whichever is moved)", "Kick with Right Foot", "Use right eye when only using one"]},
+      {prompt: "Did you ever change your handedness?", options: ["Yes, permanently changed handedness for most activities", "Yes, but only temporarily", "Yes, but only for a few activities", "No"]}
+      ], 
+    on_finish: function(data) {
+      progress_location = "task";
+      var d = JSON.parse(data.responses);
+        hand = d.Q0;
+        activity_hand = d.Q1;
+        change_hand = d.Q2;
+
+        data_all.hand.push(hand);
+        data_all.activity_hand.push(activity_hand);
+        data_all.change_hand.push(change_hand);
+
+      }
+    };
+
+
+  // exit full screen for text input so safari users can do it
+  var fullscreen_exit = {
+    type: 'fullscreen',
+    fullscreen_mode: false
+  }
+
+  timeline.push(fullscreen_exit)
+
+  timeline.push(demo1)
+  timeline.push(demo2)
+  timeline.push(demo3)
+
+  // Experiment Completion Message
+  function debrief_block(){
+    var debrief = {
+      type: "instructions",
+      pages: [
+      "<p>Great job! You have finished the experiment.</p>"+
+
+      "<p>The goal of this experiment is to understand how the different things we know impact how we understand language. For example, we have knowledge about our surroundings from being in them and experiencing them with our senses. However, we also have knowledge about our surroundings that comes from how we talk about what we experience!</p>" +
+      "<p>The sentences in this experiment either promoted an interpretation that is more aligned with what the average person knows from their environment, or what the average person knows from language. We will compare your reading times for each of these types of sentences to understand how world knowledge and language knowledge inform how we understand language more generally.</p>"+
+      "<p>If you would like to read more, Willits, Amato, and MacDonald (2015) is an excellent reference to read.</p>",
+
+      "<p>Thank you for your participation! Click the 'next' button to receive your code for MTurk.</p>" +
+      "<p>If you have any questions or feedback on this experiment, please reach out to enmech2@illinois.edu, and I will respond as soon as I am able.</p>",
+      "<p>Thank you for your participation. Copy the code below into MTurk to verify that you have done the task. When you have finished copying and pasting the code into MTurk, you can close this window.</p>" +
+      "<p> MTurk Code: " + mturk_code
+      ],
+      show_clickable_nav : true,
+      on_start: function(){
+        progress_location = "debrief";
+      }
+    };
+    
+    jsPsych.init({
+      timeline: [debrief]
+      })
+  }
+
+
+  // Save the data
+  //prep cleaned data to export as csv
+  function prepdata(data) {
+    var data_json = JSON.stringify(data)
+    return data_json;
+  }
+
+  function savethedata() {
+    //save cleaned data
+    var datafilename = clean_file_name;
+    saveData(datafilename, prepdata(data_all));
+  }
+
+  var save_data = {
+    type: 'call-function',
+    func: savethedata
+  }
+  
+  function saveData(name, data){
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({filename: name, filedata: data}));
+  }
+  
+
+  function saveInteractionData(name, data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'write_data.php'); // 'write_data.php' is the path to the php file described above.
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({filename: name, filedata: data}));
+  }
+
+
+      /* start the experiment */
+    jsPsych.init({
+      
+      timeline: timeline,
+
+      //exclude those who dont have min width/height
+      exclusions: {
+        min_width: 1000,
+        min_height: 600
+      },
+
+      show_progress_bar: true,
+
+      on_close: function(){
+        var data = jsPsych.data.get().json();
+        save_data_to_server(data);
+      },
+
+      on_interaction_data_update: function(data) {
+        console.log(JSON.stringify(data))
+        
+        if (data.event == 'fullscreenexit' & progress_location == 'task') {
+          alert('You have exited fullscreen. Please do not leave the task.');
+          left = 1;      
+        }
+        
+        else if (data.event == 'blur' & progress_location == 'task') {
+          left = 1;
+          left_trial = 1;
+        }
+      },
+
+      on_finish: function() {
+        // this adds a property called 'participant' and a property called 'list' to every trial
+        jsPsych.data.addProperties({
+          subject: participant,
+          list: list
+          
+        }); 
+
+        //save cleaned data
+        savethedata();
+        saveData(datafilename, jsPsych.data.get().json());
+        saveInteractionData(interaction_data_file_name, jsPsych.data.getInteractionData().json());
+        debrief_block();
+      }
+    });
+  </script>
+</html>
